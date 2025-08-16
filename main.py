@@ -1,39 +1,25 @@
+import os
 from flask import Flask, request, jsonify
-
-# Memory now tracks each player individually
-memory = {}
-
-def ai_response(player, message):
-    # Initialize memory for the player if not exists
-    if player not in memory:
-        memory[player] = []
-
-    # Save message to this player's memory
-    memory[player].append(message)
-
-    # Simple logic
-    if "hello" in message.lower():
-        return f"Hello, {player}. How can I assist you today?"
-    elif "status" in message.lower():
-        return "All systems are running normally."
-    elif "memory" in message.lower():
-        return f"I remember your messages: {memory[player]}"
-    else:
-        return f"(AI) You said: {message}"
+import openai
 
 app = Flask(__name__)
-
-@app.get("/ping")
-def ping():
-    return "pong"
+openai.api_key = os.getenv("OPENAI_API_KEY")  # Make sure your key is set in secrets
 
 @app.post("/npc")
 def npc():
-    # Expecting JSON: { "player": "<name>", "message": "<text>" }
-    data = request.json
-    player = data.get("player", "Unknown")
-    user_msg = data.get("message", "")
-    reply = ai_response(player, user_msg)
+    user_msg = request.json.get("message", "")
+    player = request.json.get("player", "")
+    personality = request.json.get("personality", "Calm, observant, slightly cryptic")
+    recent_context = request.json.get("recentContext", "")
+
+    prompt = f"You are Mira, {personality}.\nRecent conversation: {recent_context}\nPlayer {player} says: {user_msg}\nReply:"
+
+    response = openai.ChatCompletion.create(
+        model="gpt-4o-mini",
+        messages=[{"role": "system", "content": prompt}]
+    )
+
+    reply = response.choices[0].message.content.strip()
     return jsonify({"reply": reply})
 
 if __name__ == "__main__":
