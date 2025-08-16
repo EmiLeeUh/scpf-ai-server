@@ -1,24 +1,25 @@
 import os
 from flask import Flask, request, jsonify
-import openai
+from openai import OpenAI
 
 # Create Flask app
 app = Flask(__name__)
-
-# Set OpenAI API key from Render environment variable
-openai.api_key = os.getenv("OPENAI_API_KEY")
+client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 @app.post("/npc")
 def npc():
     try:
-        user_msg = request.json.get("message", "")
-        player = request.json.get("player", "")
-        personality = request.json.get("personality", "Calm, observant, slightly cryptic")
-        recent_context = request.json.get("recentContext", "")
+        data = request.json
+        user_msg = data.get("message", "")
+        player = data.get("player", "")
+        personality = data.get("personality", "Calm, observant, slightly cryptic")
+        recent_context = data.get("recentContext", "")
 
+        # Build prompt for Mira
         prompt = f"You are Mira, {personality}.\nRecent conversation: {recent_context}\nPlayer {player} says: {user_msg}\nReply:"
 
-        response = openai.ChatCompletion.create(
+        # Use new OpenAI chat API
+        response = client.chat.completions.create(
             model="gpt-4o-mini",
             messages=[{"role": "system", "content": prompt}]
         )
