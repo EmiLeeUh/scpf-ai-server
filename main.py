@@ -1,5 +1,14 @@
 from flask import Flask, request, jsonify
-import os
+
+# For now, a simple AI-like logic
+def ai_response(message):
+    # Example: simple keyword responses
+    if "hello" in message.lower():
+        return "Hello, agent. How can I assist you today?"
+    elif "status" in message.lower():
+        return "All systems are running normally."
+    else:
+        return f"(AI) You said: {message}"
 
 app = Flask(__name__)
 
@@ -10,7 +19,8 @@ def ping():
 @app.post("/npc")
 def npc():
     user_msg = request.json.get("message", "")
-    return jsonify({"reply": f"(echo) You said: {user_msg}"})
+    reply = ai_response(user_msg)
+    return jsonify({"reply": reply})
 
-port = int(os.environ.get("PORT", 5000))
-app.run(host="0.0.0.0", port=port)
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=8000)
