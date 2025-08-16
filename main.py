@@ -1,12 +1,19 @@
 from flask import Flask, request, jsonify
 
-# For now, a simple AI-like logic
+# Simple memory for the AI (in-memory for now)
+memory = []
+
 def ai_response(message):
-    # Example: simple keyword responses
+    # Save the message to memory
+    memory.append(message)
+
+    # Simple logic based on keywords
     if "hello" in message.lower():
         return "Hello, agent. How can I assist you today?"
     elif "status" in message.lower():
         return "All systems are running normally."
+    elif "memory" in message.lower():
+        return f"I remember these messages: {memory}"
     else:
         return f"(AI) You said: {message}"
 
