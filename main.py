@@ -1,19 +1,23 @@
 from flask import Flask, request, jsonify
 
-# Simple memory for the AI (in-memory for now)
-memory = []
+# Memory now tracks each player individually
+memory = {}
 
-def ai_response(message):
-    # Save the message to memory
-    memory.append(message)
+def ai_response(player, message):
+    # Initialize memory for the player if not exists
+    if player not in memory:
+        memory[player] = []
 
-    # Simple logic based on keywords
+    # Save message to this player's memory
+    memory[player].append(message)
+
+    # Simple logic
     if "hello" in message.lower():
-        return "Hello, agent. How can I assist you today?"
+        return f"Hello, {player}. How can I assist you today?"
     elif "status" in message.lower():
         return "All systems are running normally."
     elif "memory" in message.lower():
-        return f"I remember these messages: {memory}"
+        return f"I remember your messages: {memory[player]}"
     else:
         return f"(AI) You said: {message}"
 
@@ -25,8 +29,11 @@ def ping():
 
 @app.post("/npc")
 def npc():
-    user_msg = request.json.get("message", "")
-    reply = ai_response(user_msg)
+    # Expecting JSON: { "player": "<name>", "message": "<text>" }
+    data = request.json
+    player = data.get("player", "Unknown")
+    user_msg = data.get("message", "")
+    reply = ai_response(player, user_msg)
     return jsonify({"reply": reply})
 
 if __name__ == "__main__":
